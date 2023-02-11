@@ -165,59 +165,9 @@ RenderWindowUIMultipleInheritance::RenderWindowUIMultipleInheritance()
     connect(this->actionExit, SIGNAL(triggered()), this, SLOT(slotExit()));
     QObject::connect(this->UpperThreshold, SIGNAL(valueChanged), this, SLOT(on_UpperThreshold_valueChanged(int)));
 
-
-
-    readervtk = vtkSmartPointer<vtkDICOMImageReader>::New();
-    renderer = vtkSmartPointer<vtkRenderer>::New();
-    mapper = vtkSmartPointer<vtkImageSliceMapper>::New();
-    actor = vtkSmartPointer<vtkImageActor>::New();
     renderer->SetBackground(.1, .2, .3);
     actor->SetMapper(mapper);
     renderer->AddActor(actor);
-
-    renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-    renderWindowOpenGL2 = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-    renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-    renderWindowInteractor2 = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-
-
-    imageViewer = vtkSmartPointer<vtkImageViewer2>::New();
-    imageViewer2 = vtkSmartPointer<vtkImageViewer2>::New();
-    imageViewer3 = vtkSmartPointer<vtkImageViewer2>::New();
-
-    ROIFilter = itk::RegionOfInterestImageFilter <InputImageType, InputImageType>::New();
-    thresholdFilterIntervertebrae = BinarythresholdFilter::New();
-    thresholdFilterCord = BinarythresholdFilter::New();
-    volumeCord = vtkSmartPointer<vtkImageData>::New();
-    volumeIntervertebrae = vtkSmartPointer<vtkImageData>::New();
-
-    connector1 = ConnectorType::New();
-    caster1 = CastingFilterType::New();
-    connector2 = ConnectorType::New();
-    caster2 = CastingFilterType::New();
-
-    newClosing = CloseType::New();
-    newClosing2 = CloseType::New();
-    HoleFilling = IterativeFillHolesFilterType::New();
-    GSHoleFilling = GSFillHolesFilterType::New();
-    HoleFilling2 = IterativeFillHolesFilterType::New();
-    GSHoleFilling2 = GSFillHolesFilterType::New();
-
-    vtkrenderWindow =  vtkSmartPointer<vtkRenderWindow>::New();
-    interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-
-
-    leftRenderer = vtkSmartPointer<vtkRenderer>::New();
-    rightmapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    rightactor =	vtkSmartPointer<vtkActor>::New();
-    style = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-    leftmapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    leftactor = vtkSmartPointer<vtkActor>::New();
-    surface =	vtkSmartPointer<vtkMarchingCubes>::New();
-    surface2 = vtkSmartPointer<vtkMarchingCubes>::New();
-    smoothing =	CurvatureFlowImageFilterType::New();
-    myobjexporter = vtkSmartPointer<vtkOBJExporter>::New();
-
 
     Up_Threshold->setText("Set Upper Threshold");
     Low_Threshold->setText("Set Lower Threshold");

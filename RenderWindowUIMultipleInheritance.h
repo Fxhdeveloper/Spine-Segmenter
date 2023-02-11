@@ -101,7 +101,7 @@
 #include <vtkSeedRepresentation.h>
 #include <vtkSeedWidget.h>
 #include <vtkSmartPointer.h>
-#include <vtkSphereSource.h>
+#include <vtksphereSource.h>
 #include <vtkSTLReader.h>
 #include <vtkSTLWriter.h>
 #include <vtkTextMapper.h>
@@ -126,10 +126,8 @@ const unsigned int InputDimension = 3;
 typedef itk::Image<OutputPixelType, InputDimension> OutputImageType;
 typedef itk::Image<InputPixelType, InputDimension> InputImageType;
 
+static itk::RegionOfInterestImageFilter <InputImageType, InputImageType>::Pointer    ROIFilter = itk::RegionOfInterestImageFilter <InputImageType, InputImageType>::New();
 
-
-//typedef static itk::RegionOfInterestImageFilter <InputImageType, InputImageType> inputROIFilterType;
-static itk::RegionOfInterestImageFilter <InputImageType, InputImageType>::Pointer ROIFilter;
 
 static int MinSlice;
 static int MaxSlice;
@@ -143,7 +141,6 @@ typedef itk::BinaryBallStructuringElement< OutputImageType::PixelType, 3 > Struc
 typedef itk::BinaryMorphologicalClosingImageFilter < OutputImageType, OutputImageType, StructuringElementType > CloseType;
 typedef itk::VotingBinaryIterativeHoleFillingImageFilter< OutputImageType > IterativeFillHolesFilterType;
 typedef itk::GrayscaleFillholeImageFilter< OutputImageType, OutputImageType > GSFillHolesFilterType;
-
 
 class RenderWindowUIMultipleInheritance : public QMainWindow , private Ui::SimpleView
 {
@@ -160,45 +157,37 @@ public:
 
 private:
     std::unique_ptr<ITK> itkObject = std::make_unique<ITK>();
-    vtkSmartPointer<vtkImageViewer2> imageViewer;
-    vtkSmartPointer<vtkImageViewer2> imageViewer2;
-    vtkSmartPointer<vtkImageViewer2> imageViewer3;
+    vtkSmartPointer<vtkImageViewer2> imageViewer= vtkSmartPointer<vtkImageViewer2>::New();
+    vtkSmartPointer<vtkImageViewer2> imageViewer2= vtkSmartPointer<vtkImageViewer2>::New();
+    vtkSmartPointer<vtkImageViewer2> imageViewer3= vtkSmartPointer<vtkImageViewer2>::New();
+    vtkSmartPointer<vtkDICOMImageReader> readervtk = vtkSmartPointer<vtkDICOMImageReader>::New();
+    vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+    vtkSmartPointer<vtkImageActor> actor = vtkSmartPointer<vtkImageActor>::New();
+    vtkSmartPointer<vtkImageSliceMapper>mapper = vtkSmartPointer<vtkImageSliceMapper>::New();
+    vtkSmartPointer<vtkGenericOpenGLRenderWindow>    renderWindowOpenGL2 = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+    vtkSmartPointer<vtkGenericOpenGLRenderWindow> renderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+    vtkSmartPointer<vtkRenderWindowInteractor>     renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+    vtkSmartPointer<vtkRenderWindowInteractor>     renderWindowInteractor2 = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 
+    BinarythresholdFilter::Pointer thresholdFilterIntervertebrae= BinarythresholdFilter::New();
+    BinarythresholdFilter::Pointer thresholdFilterCord= BinarythresholdFilter::New();
+    vtkSmartPointer<vtkImageData> volumeCord=vtkSmartPointer<vtkImageData>::New();
+    vtkSmartPointer<vtkImageData> volumeIntervertebrae=vtkSmartPointer<vtkImageData>::New();
 
-
-    vtkSmartPointer<vtkDICOMImageReader> readervtk;
-    vtkSmartPointer<vtkRenderer> renderer;
-    vtkSmartPointer<vtkImageActor> actor;
-    vtkSmartPointer<vtkImageSliceMapper> mapper;
-
-    vtkSmartPointer<vtkGenericOpenGLRenderWindow> renderWindowOpenGL2;
-    vtkSmartPointer<vtkGenericOpenGLRenderWindow> renderWindow;
-    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor;
-    vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor2;
-
-
-
-
-
-    BinarythresholdFilter::Pointer thresholdFilterIntervertebrae;
-    BinarythresholdFilter::Pointer thresholdFilterCord;
-    vtkSmartPointer<vtkImageData> volumeCord;
-    vtkSmartPointer<vtkImageData> volumeIntervertebrae;
-
-    ConnectorType::Pointer connector1;
-    CastingFilterType::Pointer caster1;
-    ConnectorType::Pointer connector2;
-    CastingFilterType::Pointer caster2;
+    ConnectorType::Pointer connector1 = ConnectorType::New();
+    ConnectorType::Pointer connector2 = ConnectorType::New();
+    CastingFilterType::Pointer caster1 = CastingFilterType::New();
+    CastingFilterType::Pointer caster2 = CastingFilterType::New();
 
 
 
 
-    CloseType::Pointer newClosing ;
-    CloseType::Pointer newClosing2;
-    IterativeFillHolesFilterType::Pointer HoleFilling;
-    GSFillHolesFilterType::Pointer GSHoleFilling ;
-    IterativeFillHolesFilterType::Pointer HoleFilling2;
-    GSFillHolesFilterType::Pointer GSHoleFilling2 ;
+    CloseType::Pointer newClosing = CloseType::New();
+    CloseType::Pointer newClosing2 = CloseType::New();
+    IterativeFillHolesFilterType::Pointer HoleFilling = IterativeFillHolesFilterType::New();
+    IterativeFillHolesFilterType::Pointer HoleFilling2 = IterativeFillHolesFilterType::New();
+    GSFillHolesFilterType::Pointer  GSHoleFilling = GSFillHolesFilterType::New();
+    GSFillHolesFilterType::Pointer GSHoleFilling2 = GSFillHolesFilterType::New();
 
 
     vtkSmartPointer<vtkRenderWindow> vtkrenderWindow =
@@ -206,27 +195,23 @@ private:
     vtkSmartPointer<vtkRenderWindowInteractor> interactor =
             vtkSmartPointer<vtkRenderWindowInteractor>::New();
 
-    vtkSmartPointer<vtkRenderer> leftRenderer =
-            vtkSmartPointer<vtkRenderer>::New();
-    vtkSmartPointer<vtkPolyDataMapper> rightmapper =
-            vtkSmartPointer<vtkPolyDataMapper>::New();
-    vtkSmartPointer<vtkActor> rightactor =
-            vtkSmartPointer<vtkActor>::New();
+    vtkSmartPointer<vtkRenderer> leftRenderer = vtkSmartPointer<vtkRenderer>::New();
+    vtkSmartPointer<vtkPolyDataMapper> rightmapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    vtkSmartPointer<vtkActor> rightactor = vtkSmartPointer<vtkActor>::New();
     vtkSmartPointer<vtkInteractorStyleTrackballCamera> style =
             vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
-    vtkSmartPointer<vtkPolyDataMapper> leftmapper =
-            vtkSmartPointer<vtkPolyDataMapper>::New();
-    vtkSmartPointer<vtkActor> leftactor =
-            vtkSmartPointer<vtkActor>::New();
+    vtkSmartPointer<vtkPolyDataMapper> leftmapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+    vtkSmartPointer<vtkActor> leftactor = vtkSmartPointer<vtkActor>::New();
     vtkSmartPointer<vtkMarchingCubes> surface =
             vtkSmartPointer<vtkMarchingCubes>::New();
     vtkSmartPointer<vtkMarchingCubes> surface2 =
             vtkSmartPointer<vtkMarchingCubes>::New();
     typedef itk::CurvatureFlowImageFilter< InputImageType, InputImageType >
     CurvatureFlowImageFilterType;
-    CurvatureFlowImageFilterType::Pointer smoothing;
+    CurvatureFlowImageFilterType::Pointer smoothing = CurvatureFlowImageFilterType::New();
 
-    vtkSmartPointer<vtkOBJExporter> myobjexporter;
+    vtkSmartPointer<vtkOBJExporter> myobjexporter = vtkSmartPointer<vtkOBJExporter>::New();
+
 
     int theLowerThreshold = 0;
     int theUpperThreshold = 0;

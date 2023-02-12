@@ -41,25 +41,9 @@ public:
         upperRight[2] = 0;
         cout << endl<< endl;
 
-        RenderWindowUIMultipleInheritance::CropVolume(lowerLeft, upperRight);
+        ITK::calculateRegionToCrop(lowerLeft, upperRight);
 
     }
-
-
-
-    //void SetCoordinates(InputImageType::IndexType **cropStart, InputImageType::IndexType **cropEnd){
-    //
-    //
-    //	//InputImageType::IndexType cropStart;
-    //	cropStart[0] = lowerLeft[0];
-    //	cropStart[1] = lowerLeft[1];
-    //	cropStart[2] = lowerLeft[2];
-    //	//InputImageType::IndexType cropEnd;
-    //	cropEnd[0] = upperRight[0];
-    //	cropEnd[1] = upperRight[1];
-    //	cropEnd[2] = upperRight[2];
-    //
-    //		}
 
     void SetRenderer(vtkSmartPointer<vtkRenderer> ren) { this->Renderer = ren; }
     void SetImageActor(vtkSmartPointer<vtkImageActor> im) { this->ImageActor = im; }
@@ -71,8 +55,6 @@ private:
     vtkSmartPointer<vtkImageViewer2> imageviewer;
 
 };
-
-
 
 
 // Define own interaction style
@@ -149,13 +131,10 @@ protected:
 vtkStandardNewMacro(myVtkInteractorStyleImage)
 
 
-
 vtkSmartPointer<myVtkInteractorStyleImage>  myInteractorStyle =
         vtkSmartPointer<myVtkInteractorStyleImage>::New();
 
 
-
-// Constructor
 RenderWindowUIMultipleInheritance::RenderWindowUIMultipleInheritance()
 {
 
@@ -190,15 +169,9 @@ void RenderWindowUIMultipleInheritance::on_ReadData_clicked() {
     std::string folder = getDicomImagesFolder();
     itkObject->readDicom(folder);
 
-
-
-
-
     readervtk->SetDirectoryName(folder.c_str());
     readervtk->Update();
     imageViewer->SetInputConnection(readervtk->GetOutputPort());
-
-
 
     qvtkWidget->SetRenderWindow(renderWindow);
     renderWindowInteractor = qvtkWidget->GetInteractor();
@@ -214,12 +187,10 @@ void RenderWindowUIMultipleInheritance::on_ReadData_clicked() {
     imageViewer->Render();
     renderWindowInteractor->Start();
 
-    MinSlice = imageViewer->GetSliceMin();
-    MaxSlice = imageViewer->GetSliceMax();
+    itkObject->MinSlice = imageViewer->GetSliceMin();
+    itkObject->MaxSlice = imageViewer->GetSliceMax();
 
-
-
-    label_3->setText("Slice: Min = " + QString::number(MinSlice) + ", Max = " + QString::number(MaxSlice));
+    label_3->setText("Slice: Min = " + QString::number(itkObject->MinSlice) + ", Max = " + QString::number(itkObject->MaxSlice));
 
     ShowCropTool();
 }
@@ -293,63 +264,27 @@ void RenderWindowUIMultipleInheritance::ShowCropTool() {
     renderWindowInteractor->Start();
 }
 
-void RenderWindowUIMultipleInheritance::CropVolume(double *x, double *y) {
 
-    InputImageType::IndexType cropStart;
-    cropStart[0] = x[0]-120;
-    cropStart[1] = 590 - y[1]- 35;//-88
-    cropStart[2] = MinSlice; //x[2];
+ConnectorType::Pointer RenderWindowUIMultipleInheritance::castDataItkToVtk(CurvatureFlowImageFilterType::Pointer inputData)
+{
+    CastingFilterType::Pointer caster = CastingFilterType::New();
+    ConnectorType::Pointer connector = ConnectorType::New();
 
-    InputImageType::IndexType cropEnd;
-    cropEnd[0] = y[0]-88;//
-    cropEnd[1] = 590 - x[1]-15 ;//-44
-    cropEnd[2] = MaxSlice;  // x[2];
+    caster->SetInput(inputData->GetOutput());
+    connector->SetInput(caster->GetOutput());
+    connector->Update();
 
-    cout << "the cropping parameters seem to be lowerLeft= " << cropStart[0] << "," << cropStart[1] << "," << cropStart[2] << endl;
-    cout << "the cropping parameters seem to be uoperRight= " << cropEnd[0] << "," << cropEnd[1] << "," << cropEnd[2] << endl;
-
-
-    InputImageType::RegionType DesiredRegion;
-    InputImageType::SizeType cropSize;
-    cropSize[0] = cropEnd[0] - cropStart[0] ;
-    cropSize[1] = cropEnd[1] - cropStart[1] ;
-    cropSize[2] = cropEnd[2] - cropStart[2];
-
-    DesiredRegion.SetSize(cropSize);
-    DesiredRegion.SetIndex(cropStart);
-
-    //DesiredRegion.SetUpperIndex(cropEnd);
-
-    ROIFilter->SetRegionOfInterest(DesiredRegion);
-
-
+    return connector;
 }
 
 void RenderWindowUIMultipleInheritance::on_Crop_clicked() {
 
+    itkObject->crop();
+    itkObject->smooth();
 
-    ROIFilter->SetInput(itkObject->getReader()->GetOutput());
-    ROIFilter->Update();
-
-    //************ Smoothing Filter ********************************
-
-    smoothing->SetInput(ROIFilter->GetOutput());
-    smoothing->SetNumberOfIterations(10);
-    smoothing->SetTimeStep(0.05);
-    smoothing->Update();
-    //************ Smoothing Filter finished ********************************//
-
-    typedef itk::CastImageFilter< InputImageType, OutputImageType >  CastingFilterType;
-    CastingFilterType::Pointer caster1 = CastingFilterType::New();
-
-    typedef itk::ImageToVTKImageFilter<OutputImageType>       ConnectorType;
-    ConnectorType::Pointer connector1 = ConnectorType::New();
+    ConnectorType::Pointer connector1 = castDataItkToVtk(itkObject->getSmoothedData());
 
     vtkSmartPointer<vtkImageData> volume1 = vtkSmartPointer<vtkImageData>::New();
-
-    caster1->SetInput(smoothing->GetOutput());
-    connector1->SetInput(caster1->GetOutput());
-    connector1->Update();
     volume1->DeepCopy(connector1->GetOutput());
 
 
@@ -373,27 +308,16 @@ void RenderWindowUIMultipleInheritance::on_Crop_clicked() {
 
 void RenderWindowUIMultipleInheritance::Threshold(void) {
 
-    //Filtering
-
-
-
     //Intervertebrae Disks
-    thresholdFilterIntervertebrae->SetInput(smoothing->GetOutput());
-    thresholdFilterIntervertebrae->SetLowerThreshold(theLowerThreshold);
-    thresholdFilterIntervertebrae->SetUpperThreshold(theUpperThreshold);
-    thresholdFilterIntervertebrae->Update();
+    itkObject->BinaryThreshold(thresholdFilterIntervertebrae, theLowerThreshold, theUpperThreshold);
 
-
-    typedef itk::CastImageFilter< InputImageType, OutputImageType >  CastingFilterType;
-    CastingFilterType::Pointer caster1 = CastingFilterType::New();
-
-    typedef itk::ImageToVTKImageFilter<OutputImageType>       ConnectorType;
+    CastingFilterType::Pointer caster1 = CastingFilterType::New();    
     ConnectorType::Pointer connector1 = ConnectorType::New();
-
-
     caster1->SetInput(thresholdFilterIntervertebrae->GetOutput());
     connector1->SetInput(caster1->GetOutput());
     connector1->Update();
+
+
     volumeIntervertebrae->DeepCopy(connector1->GetOutput());
 
 
@@ -414,30 +338,8 @@ void RenderWindowUIMultipleInheritance::Threshold(void) {
 }
 
 void RenderWindowUIMultipleInheritance::ThresholdCord(void) {
-
-    //Filtering
     //Intervertebrae Disks
-    thresholdFilterCord->SetInput(smoothing->GetOutput());
-    thresholdFilterCord->SetLowerThreshold(230);
-    thresholdFilterCord->SetUpperThreshold(441);
-    thresholdFilterCord->Update();
-
-
-    //typedef itk::CastImageFilter< InputImageType, OutputImageType >  CastingFilterType;
-    //CastingFilterType::Pointer caster1 = CastingFilterType::New();
-
-    //typedef itk::ImageToVTKImageFilter<OutputImageType>       ConnectorType;
-    //ConnectorType::Pointer connector1 = ConnectorType::New();
-
-    //
-
-    //caster1->SetInput(thresholdFilterCord->GetOutput());
-    //connector1->SetInput(caster1->GetOutput());
-    //connector1->Update();
-    //volumeCord->DeepCopy(connector1->GetOutput());
-
-
-
+    itkObject->BinaryThreshold(thresholdFilterCord, 230, 441);
 }
 
 void RenderWindowUIMultipleInheritance::Print(void) {
@@ -574,12 +476,6 @@ void RenderWindowUIMultipleInheritance::on_ShowModel_clicked() {
 
 }
 
-//void RenderWindowUIMultipleInheritance::on_ShowExternal_clicked()
-//{
-//	vtkrenderWindow->Render();
-//	interactor->Start();
-//	
-//}
 
 void RenderWindowUIMultipleInheritance::on_Show_in_VR_clicked() {
 

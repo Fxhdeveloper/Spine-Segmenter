@@ -27,7 +27,6 @@
 #include "itkNumericSeriesFileNames.h"
 #include "itkNumericTraits.h"
 #include "itkPasteImageFilter.h"
-#include "itkRegionOfInterestImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkRGBPixel.h"
 #include "itkScalarToRGBColormapImageFilter.h"
@@ -40,7 +39,7 @@
 #include <iostream>
 #include <itkAddImageFilter.h>
 #include <itkBinaryThresholdImageFilter.h>
-#include <itkCurvatureFlowImageFilter.h>
+
 #include <itkImage.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
@@ -48,7 +47,7 @@
 #include <itkMaskNegatedImageFilter.h>
 #include <itkNrrdImageIO.h>
 #include <itkOtsuMultipleThresholdsImageFilter.h>
-#include <itkRegionOfInterestImageFilter.h>
+
 #include <QDesktopServices>
 #include <QDir>
 #include <QFileDialog>
@@ -125,18 +124,9 @@ typedef double OutputPixelType;
 const unsigned int InputDimension = 3;
 typedef itk::Image<OutputPixelType, InputDimension> OutputImageType;
 typedef itk::Image<InputPixelType, InputDimension> InputImageType;
-
-static itk::RegionOfInterestImageFilter <InputImageType, InputImageType>::Pointer    ROIFilter = itk::RegionOfInterestImageFilter <InputImageType, InputImageType>::New();
-
-
-static int MinSlice;
-static int MaxSlice;
-
 typedef itk::CastImageFilter< InputImageType, OutputImageType >  CastingFilterType;
 typedef itk::ImageToVTKImageFilter<OutputImageType>       ConnectorType;
-
-
-typedef itk::BinaryThresholdImageFilter<InputImageType, InputImageType> BinarythresholdFilter;
+typedef itk::BinaryThresholdImageFilter<InputImageType, InputImageType> BinaryThresholdFilter;
 typedef itk::BinaryBallStructuringElement< OutputImageType::PixelType, 3 > StructuringElementType;
 typedef itk::BinaryMorphologicalClosingImageFilter < OutputImageType, OutputImageType, StructuringElementType > CloseType;
 typedef itk::VotingBinaryIterativeHoleFillingImageFilter< OutputImageType > IterativeFillHolesFilterType;
@@ -148,12 +138,6 @@ class RenderWindowUIMultipleInheritance : public QMainWindow , private Ui::Simpl
 public:
 
     RenderWindowUIMultipleInheritance();
-    static void CropVolume(double *x, double *y);
-
-    InputImageType::SizeType cropSize;
-
-
-
 
 private:
     std::unique_ptr<ITK> itkObject = std::make_unique<ITK>();
@@ -169,8 +153,8 @@ private:
     vtkSmartPointer<vtkRenderWindowInteractor>     renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
     vtkSmartPointer<vtkRenderWindowInteractor>     renderWindowInteractor2 = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 
-    BinarythresholdFilter::Pointer thresholdFilterIntervertebrae= BinarythresholdFilter::New();
-    BinarythresholdFilter::Pointer thresholdFilterCord= BinarythresholdFilter::New();
+    BinaryThresholdFilter::Pointer thresholdFilterIntervertebrae= BinaryThresholdFilter::New();
+    BinaryThresholdFilter::Pointer thresholdFilterCord= BinaryThresholdFilter::New();
     vtkSmartPointer<vtkImageData> volumeCord=vtkSmartPointer<vtkImageData>::New();
     vtkSmartPointer<vtkImageData> volumeIntervertebrae=vtkSmartPointer<vtkImageData>::New();
 
@@ -206,16 +190,13 @@ private:
             vtkSmartPointer<vtkMarchingCubes>::New();
     vtkSmartPointer<vtkMarchingCubes> surface2 =
             vtkSmartPointer<vtkMarchingCubes>::New();
-    typedef itk::CurvatureFlowImageFilter< InputImageType, InputImageType >
-    CurvatureFlowImageFilterType;
-    CurvatureFlowImageFilterType::Pointer smoothing = CurvatureFlowImageFilterType::New();
+
 
     vtkSmartPointer<vtkOBJExporter> myobjexporter = vtkSmartPointer<vtkOBJExporter>::New();
 
-
-    int theLowerThreshold = 0;
-    int theUpperThreshold = 0;
-    int GlobalActualSlice = 0;
+    int theLowerThreshold{};
+    int theUpperThreshold{};
+    int GlobalActualSlice{};
 
     void Threshold(void);
     void ThresholdCord(void);
@@ -223,6 +204,8 @@ private:
     void Print(void);
 
     std::string getDicomImagesFolder();
+
+    ConnectorType::Pointer castDataItkToVtk(CurvatureFlowImageFilterType::Pointer inputData);
 
 private slots:
     void on_UpperThreshold_valueChanged(int value);

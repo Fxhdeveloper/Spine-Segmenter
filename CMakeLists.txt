@@ -1,23 +1,18 @@
-cmake_minimum_required(VERSION 2.8)
- 
-if(POLICY CMP0020)
-  cmake_policy(SET CMP0020 NEW)
-endif()
- 
-PROJECT(RenderWindowUIMultipleInheritance)
- 
+cmake_minimum_required(VERSION 3.15)
+
+project(RenderWindowUIMultipleInheritance LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
-
 
 set(CMAKE_AUTOUIC ON)
 find_package(ITK REQUIRED)
 IF(ITK_FOUND)
-
-	INCLUDE(${ITK_USE_FILE})
-
+    INCLUDE(${ITK_USE_FILE})
 ELSE(ITK_FOUND)
-
     MESSAGE(FATAL_ERROR "Cannot build InsightApplications without ITK.  Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
 
@@ -42,14 +37,14 @@ file(GLOB CXX_FILES *.cxx *.cpp)
 if(${VTK_VERSION} VERSION_GREATER "6" AND VTK_QT_VERSION VERSION_GREATER "4")
   qt5_wrap_ui(UISrcs ${UI_FILES} )
   # CMAKE_AUTOMOC in ON so the MOC headers will be automatically wrapped.
-  add_executable(RenderWindowUIMultipleInheritance MACOSX_BUNDLE
-    ${CXX_FILES} ${UISrcs} ${QT_WRAP})
+  add_executable(RenderWindowUIMultipleInheritance ${CXX_FILES} ${UISrcs} ${QT_WRAP})
+    target_compile_features(RenderWindowUIMultipleInheritance PUBLIC cxx_std_17)
   qt5_use_modules(RenderWindowUIMultipleInheritance Core Gui)
   target_link_libraries(RenderWindowUIMultipleInheritance ${VTK_LIBRARIES} ${ITK_LIBRARIES})
 else()
   QT4_WRAP_UI(UISrcs ${UI_FILES})
   QT4_WRAP_CPP(MOCSrcs ${QT_WRAP})
-  add_executable(RenderWindowUIMultipleInheritance MACOSX_BUNDLE ${CXX_FILES} ${UISrcs} ${MOCSrcs})
+  add_executable(RenderWindowUIMultipleInheritance ${CXX_FILES} ${UISrcs} ${MOCSrcs})
  
   if(VTK_LIBRARIES)
     if(${VTK_VERSION} VERSION_LESS "6")

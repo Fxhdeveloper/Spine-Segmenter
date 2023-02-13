@@ -14,7 +14,8 @@ using ImageSeriesReader = itk::ImageSeriesReader<InputImageType>;
 using BinaryThresholdFilter= itk::BinaryThresholdImageFilter<InputImageType, InputImageType>;
 using CurvatureFlowImageFilterType = itk::CurvatureFlowImageFilter< InputImageType, InputImageType>;
 
-static itk::RegionOfInterestImageFilter <InputImageType, InputImageType>::Pointer    ROIFilter = itk::RegionOfInterestImageFilter <InputImageType, InputImageType>::New();
+static itk::RegionOfInterestImageFilter <InputImageType, InputImageType>::Pointer    ROIFilter
+= itk::RegionOfInterestImageFilter <InputImageType, InputImageType>::New();
 
 class ITK
 {
@@ -32,14 +33,15 @@ public:
 
     int MinSlice{};
     int MaxSlice{};
+    void calculateRegionToCrop(std::shared_ptr<double[]> x,std::shared_ptr<double[]> y);
 private:
     ImageSeriesReader::Pointer reader = ImageSeriesReader::New();
     BinaryThresholdFilter::Pointer thresholdFilterIntervertebrae= BinaryThresholdFilter::New();
     CurvatureFlowImageFilterType::Pointer smoothing = CurvatureFlowImageFilterType::New();
 
-    void calculateRegionToCrop(double *x, double *y);
-    InputImageType::IndexType calculateCropStartPoint(double *y, double *x);
-    InputImageType::IndexType calculateCropEndPoint(double *y, double *x);
+
+    InputImageType::IndexType calculateCropStartPoint(std::shared_ptr<double[]> x, std::shared_ptr<double[]> y);
+    InputImageType::IndexType calculateCropEndPoint(std::shared_ptr<double[]> x, std::shared_ptr<double[]> y);
     InputImageType::SizeType calculateCropSize(InputImageType::IndexType cropStart, InputImageType::IndexType cropEnd);
 };
 

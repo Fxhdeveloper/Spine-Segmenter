@@ -64,11 +64,7 @@
 #include <vtkAssemblyNode.h>
 #include <vtkAssemblyPath.h>
 #include <vtkAutoInit.h>
-#include <vtkBorderRepresentation.h>
-#include <vtkBorderWidget.h>
 #include <vtkCamera.h>
-#include <vtkCommand.h>
-#include <vtkCoordinate.h>
 #include <vtkCubeSource.h>
 #include <vtkDICOMImageReader.h>
 #include <vtkGenericOpenGLRenderWindow.h>

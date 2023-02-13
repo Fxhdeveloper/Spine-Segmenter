@@ -1,61 +1,6 @@
 #include "RenderWindowUIMultipleInheritance.h"
 #include "ui_SimpleView.h"
-
-class vtkBorderCallback : public vtkCommand
-{
-public:
-    vtkBorderCallback() {}
-
-
-    static vtkBorderCallback *New()
-    {
-        return new vtkBorderCallback;
-    }
-
-    double* lowerLeft;
-    double* upperRight;
-
-    virtual void Execute(vtkObject *caller, unsigned long, void*)
-    {
-        vtkBorderWidget *borderWidget =
-                reinterpret_cast<vtkBorderWidget*>(caller);
-
-        // Get the display coordinates of the two corners of the box
-        vtkCoordinate* lowerLeftCoordinate = static_cast<vtkBorderRepresentation*>
-                (borderWidget->GetRepresentation())->GetPositionCoordinate();
-
-        //lowerLeft = lowerLeftCoordinate->GetComputedWorldValue(this->Renderer);
-        lowerLeft = lowerLeftCoordinate->GetComputedValue(imageviewer->GetRenderer());
-        std::cout << "Lower left coordinate: " << lowerLeft[0] << ", " << lowerLeft[1] << std::endl;
-        lowerLeft[2] = 0;
-
-        //vtkCoordinate* upperRightCoordinate = static_cast<vtkBorderRepresentation*>
-        //	(borderWidget->GetRepresentation())->GetPositionCoordinate();
-
-        vtkCoordinate* upperRightCoordinate = static_cast<vtkBorderRepresentation*>
-                (borderWidget->GetRepresentation())->GetPosition2Coordinate();
-
-        //upperRight = upperRightCoordinate->GetComputedWorldValue(this->Renderer);
-        upperRight = upperRightCoordinate->GetComputedValue(imageviewer->GetRenderer());
-        std::cout << "Upper right coordinate: " << upperRight[0] << ", " << upperRight[1] << std::endl;
-        upperRight[2] = 0;
-        cout << endl<< endl;
-
-        ITK::calculateRegionToCrop(lowerLeft, upperRight);
-
-    }
-
-    void SetRenderer(vtkSmartPointer<vtkRenderer> ren) { this->Renderer = ren; }
-    void SetImageActor(vtkSmartPointer<vtkImageActor> im) { this->ImageActor = im; }
-    void SetImageViewer(vtkSmartPointer<vtkImageViewer2> imgviewer) { this->imageviewer = imgviewer; }
-
-private:
-    vtkSmartPointer<vtkRenderer> Renderer;
-    vtkSmartPointer<vtkImageActor> ImageActor;
-    vtkSmartPointer<vtkImageViewer2> imageviewer;
-
-};
-
+#include "vtkbordercallback.h"
 
 // Define own interaction style
 class myVtkInteractorStyleImage : public vtkInteractorStyleImage
@@ -247,7 +192,6 @@ void RenderWindowUIMultipleInheritance::ShowCropTool() {
 
     borderCallback->SetImageViewer(imageViewer);
     borderWidget->AddObserver(vtkCommand::InteractionEvent, borderCallback);
-
 
     vtkSmartPointer<myVtkInteractorStyleImage> myInteractorStyle =
             vtkSmartPointer<myVtkInteractorStyleImage>::New();
@@ -494,6 +438,7 @@ void RenderWindowUIMultipleInheritance::on_Show_in_VR_clicked() {
 
 
 }
+
 
 void RenderWindowUIMultipleInheritance::slotExit()
 {

@@ -51,23 +51,13 @@ CurvatureFlowImageFilterType::Pointer ITK::getSmoothedData()
     return smoothing;
 }
 
-void ITK::calculateRegionToCrop(double *x, double *y) {
+
+void ITK::calculateRegionToCrop(std::shared_ptr<double[]> x, std::shared_ptr<double[]> y) {
 
     // magic, due to image viewer being shifted
-    InputImageType::IndexType cropStart;
-    cropStart[0] = x[0]-120;
-    cropStart[1] = 590 - y[1]- 35;//-88
-    cropStart[2] = MinSlice; //x[2];
-
-    InputImageType::IndexType cropEnd;
-    cropEnd[0] = y[0]-88;//
-    cropEnd[1] = 590 - x[1]-15 ;//-44
-    cropEnd[2] = MaxSlice;  // x[2];
-
-    InputImageType::SizeType cropSize;
-    cropSize[0] = cropEnd[0] - cropStart[0] ;
-    cropSize[1] = cropEnd[1] - cropStart[1] ;
-    cropSize[2] = cropEnd[2] - cropStart[2];
+    InputImageType::IndexType cropStart = calculateCropStartPoint(x, y);
+    InputImageType::IndexType cropEnd = calculateCropEndPoint(x, y);
+    InputImageType::SizeType cropSize = calculateCropSize(cropStart, cropEnd);
 
     InputImageType::RegionType regionToCrop;
     regionToCrop.SetSize(cropSize);
@@ -75,6 +65,34 @@ void ITK::calculateRegionToCrop(double *x, double *y) {
     ROIFilter->SetRegionOfInterest(regionToCrop);
 }
 
+InputImageType::IndexType ITK::calculateCropStartPoint(std::shared_ptr<double[]> x, std::shared_ptr<double[]> y)
+{
+    InputImageType::IndexType cropStart;
+    cropStart[0] = x[0]-120;
+    cropStart[1] = 590 - y[1]- 35;//-88
+    cropStart[2] = MinSlice;  //x[2];
+
+    return cropStart;
+}
+InputImageType::IndexType ITK::calculateCropEndPoint(std::shared_ptr<double[]> x, std::shared_ptr<double[]> y)
+{
+    InputImageType::IndexType cropEnd;
+    cropEnd[0] = y[0]-88;//
+    cropEnd[1] = 590 - x[1]-15 ;//-44
+    cropEnd[2] = MaxSlice;  // x[2];
+
+    return cropEnd;
+}
+
+InputImageType::SizeType ITK::calculateCropSize(InputImageType::IndexType cropStart, InputImageType::IndexType cropEnd)
+{
+    InputImageType::SizeType cropSize;
+    cropSize[0] = cropEnd[0] - cropStart[0] ;
+    cropSize[1] = cropEnd[1] - cropStart[1] ;
+    cropSize[2] = cropEnd[2] - cropStart[2];
+
+    return cropSize;
+}
 
 void ITK::crop(){
     ROIFilter->SetInput(reader->GetOutput());

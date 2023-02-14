@@ -75,7 +75,6 @@
 #include <vtkImageSliceMapper.h>
 #include <vtkImageViewer.h>
 #include <vtkImageViewer2.h>
-#include <vtkInteractorStyleImage.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkJPEGReader.h>
 #include <vtkMarchingCubes.h>

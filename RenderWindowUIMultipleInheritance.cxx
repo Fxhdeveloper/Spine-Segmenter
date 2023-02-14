@@ -1,80 +1,9 @@
 #include "RenderWindowUIMultipleInheritance.h"
 #include "ui_SimpleView.h"
 #include "vtkbordercallback.h"
-
-// Define own interaction style
-class myVtkInteractorStyleImage : public vtkInteractorStyleImage
-{
-public:
-    static myVtkInteractorStyleImage* New();
-    vtkTypeMacro(myVtkInteractorStyleImage, vtkInteractorStyleImage)
-
-    protected:
-        vtkImageViewer2 * _ImageViewer;
-    int _Slice;
-    int _MinSlice;
-    int _MaxSlice;
-
-public:
-    void SetImageViewer(vtkImageViewer2* imageViewer) {
-        _ImageViewer = imageViewer;
-        _MinSlice = imageViewer->GetSliceMin();
-        _MaxSlice = imageViewer->GetSliceMax();
-        _Slice = _MinSlice;
-        cout << "Slicer: Min = " << _MinSlice << ", Max = " << _MaxSlice << std::endl;
-    }
-    int GlobalSlice = 0;
-
-protected:
-    void MoveSliceForward() {
-        if (_Slice < _MaxSlice) {
-            _Slice += 1;
-            GlobalSlice = _Slice;
-            _ImageViewer->SetSlice(_Slice);
-            _ImageViewer->Render();
-        }
-    }
-
-    void MoveSliceBackward() {
-        if (_Slice > _MinSlice) {
-            _Slice -= 1;
-            GlobalSlice = _Slice;
-            _ImageViewer->SetSlice(_Slice);
-            _ImageViewer->Render();
-        }
-    }
-
-    /*
-    virtual void OnKeyDown() {
-    std::string key = this->(ui->qvtkwidget_2->GetInteractor()->GetKeySym();
-    if (key.compare("Up") == 0) {
-    //cout << "Up arrow key was pressed." << endl;
-    MoveSliceForward();
-    }
-    else if (key.compare("Down") == 0) {
-    //cout << "Down arrow key was pressed." << endl;
-    MoveSliceBackward();
-    }
-    // forward event
-    vtkInteractorStyleImage::OnKeyDown();
-    }
-    */
-
-    virtual void OnMouseWheelForward() {
-        //std::cout << "Scrolled mouse wheel forward." << std::endl;
-        MoveSliceForward();
-    }
-
-    virtual void OnMouseWheelBackward() {
-        //std::cout << "Scrolled mouse wheel backward." << std::endl;
-        if (_Slice > _MinSlice) {
-            MoveSliceBackward();
-        }
-    }
-};
+#include "myvtkinteractorstyleimage.h"
 
 vtkStandardNewMacro(myVtkInteractorStyleImage)
-
 
 vtkSmartPointer<myVtkInteractorStyleImage>  myInteractorStyle =
         vtkSmartPointer<myVtkInteractorStyleImage>::New();

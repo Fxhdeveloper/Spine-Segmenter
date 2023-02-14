@@ -3,7 +3,7 @@
 
 #include <vtkInteractorStyleImage.h>
 #include <vtkImageViewer2.h>
-
+#include <vtkSmartPointer.h>
 
 // Define own interaction style
 class myVtkInteractorStyleImage : public vtkInteractorStyleImage
@@ -11,23 +11,24 @@ class myVtkInteractorStyleImage : public vtkInteractorStyleImage
 public:
     static myVtkInteractorStyleImage* New();
     vtkTypeMacro(myVtkInteractorStyleImage, vtkInteractorStyleImage)
-    void SetImageViewer(vtkImageViewer2* imageViewer);
-    int GlobalSlice = 0;
+    void SetImageViewer(vtkSmartPointer<vtkImageViewer2> imgViewer);
 
 protected:
-    void MoveSliceForward();
+    void NextSlice();
 
-    void MoveSliceBackward();
+    void previousSlice();
 
     virtual void OnMouseWheelForward();
 
     virtual void OnMouseWheelBackward();
 
-    vtkImageViewer2 * _ImageViewer;
-    int _Slice;
-    int _MinSlice;
-    int _MaxSlice;
+    vtkSmartPointer<vtkImageViewer2> ImageViewer;
+    int Slice{};
+    int MinSlice{};
+    int MaxSlice{};
 
+private:
+    void updateViewer();
 };
 
 #endif // MYVTKINTERACTORSTYLEIMAGE_H

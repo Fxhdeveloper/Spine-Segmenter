@@ -4,10 +4,8 @@
 #include "myvtkinteractorstyleimage.h"
 
 vtkStandardNewMacro(myVtkInteractorStyleImage)
-
 vtkSmartPointer<myVtkInteractorStyleImage>  myInteractorStyle =
         vtkSmartPointer<myVtkInteractorStyleImage>::New();
-
 
 RenderWindowUIMultipleInheritance::RenderWindowUIMultipleInheritance()
 {
@@ -69,37 +67,50 @@ void RenderWindowUIMultipleInheritance::on_ReadData_clicked() {
     ShowCropTool();
 }
 
+
 void RenderWindowUIMultipleInheritance::on_UpperThreshold_valueChanged(int value)
 {
-    label->setText("the value is " + QString::number(value));
+    label->setText("The value is " + QString::number(value));
     theUpperThreshold = value;
-    label_3->setText(" ");
-    if (theLowerThreshold < theUpperThreshold) {
-        Threshold();
-        label_3->setText(" ");
-    }
-    else
-        label_3->setText("The Upper Threshold value needs to be higher");
+    updateLabel();
+    callThresholdFilter();
 }
+
 
 void RenderWindowUIMultipleInheritance::on_LowerThreshold_valueChanged(int value)
 {
-
-    label_2->setText("the value is " + QString::number(value));
+    label_2->setText("The value is " + QString::number(value));
     theLowerThreshold = value;
+    updateLabel();
+    callThresholdFilter();
+}
+
+
+void RenderWindowUIMultipleInheritance::updateLabel()
+{
     if (theLowerThreshold < theUpperThreshold) {
-        Threshold();
         label_3->setText(" ");
     }
-    else
+    else{
         label_3->setText("The Upper Threshold value needs to be higher");
+    }
 }
+
+
+void RenderWindowUIMultipleInheritance::callThresholdFilter()
+{
+    if (theLowerThreshold < theUpperThreshold) {
+        Threshold();
+    }
+}
+
 
 void RenderWindowUIMultipleInheritance::on_DCM_Slice_change_sliderMoved(int position)
 {
     imageViewer->SetSlice(position);
     imageViewer->Render();
 }
+
 
 void RenderWindowUIMultipleInheritance::ShowCropTool() {
 
@@ -122,13 +133,13 @@ void RenderWindowUIMultipleInheritance::ShowCropTool() {
     borderCallback->SetImageViewer(imageViewer);
     borderWidget->AddObserver(vtkCommand::InteractionEvent, borderCallback);
 
-    vtkSmartPointer<myVtkInteractorStyleImage> myInteractorStyle =
+    vtkSmartPointer<myVtkInteractorStyleImage> interactorStyle =
             vtkSmartPointer<myVtkInteractorStyleImage>::New();
 
-    myInteractorStyle->SetImageViewer(imageViewer);
+    interactorStyle->SetImageViewer(imageViewer);
     imageViewer->SetupInteractor(renderWindowInteractor);
 
-    renderWindowInteractor->SetInteractorStyle(myInteractorStyle);
+    renderWindowInteractor->SetInteractorStyle(interactorStyle);
 
     imageViewer->Render();
     imageViewer->GetRenderer()->ResetCamera();
@@ -137,8 +148,8 @@ void RenderWindowUIMultipleInheritance::ShowCropTool() {
     renderWindowInteractor->Start();
 }
 
-
-ConnectorType::Pointer RenderWindowUIMultipleInheritance::castDataItkToVtk(CurvatureFlowImageFilterType::Pointer inputData)
+template<typename T>
+auto RenderWindowUIMultipleInheritance::castDataItkToVtk(T inputData)
 {
     CastingFilterType::Pointer caster = CastingFilterType::New();
     ConnectorType::Pointer connector = ConnectorType::New();
@@ -149,6 +160,7 @@ ConnectorType::Pointer RenderWindowUIMultipleInheritance::castDataItkToVtk(Curva
 
     return connector;
 }
+
 
 void RenderWindowUIMultipleInheritance::on_Crop_clicked() {
 
@@ -184,14 +196,8 @@ void RenderWindowUIMultipleInheritance::Threshold(void) {
     //Intervertebrae Disks
     itkObject->BinaryThreshold(thresholdFilterIntervertebrae, theLowerThreshold, theUpperThreshold);
 
-    CastingFilterType::Pointer caster1 = CastingFilterType::New();    
-    ConnectorType::Pointer connector1 = ConnectorType::New();
-    caster1->SetInput(thresholdFilterIntervertebrae->GetOutput());
-    connector1->SetInput(caster1->GetOutput());
-    connector1->Update();
-
-
-    volumeIntervertebrae->DeepCopy(connector1->GetOutput());
+    auto connector = castDataItkToVtk(thresholdFilterIntervertebrae);
+    volumeIntervertebrae->DeepCopy(connector->GetOutput());
 
 
     vtkSmartPointer<vtkImageFlip> flipXFilter =
@@ -278,15 +284,11 @@ void RenderWindowUIMultipleInheritance::on_ShowModel_clicked() {
     //*************** Closing and Hole Filling Finished ***********//
 
     //Intervertebrae Disks
-    caster1->SetInput(GSHoleFilling->GetOutput());
-    connector1->SetInput(caster1->GetOutput());
-    connector1->Update();
+    auto connector1 =castDataItkToVtk(GSHoleFilling);
     volumeIntervertebrae->DeepCopy(connector1->GetOutput());
 
     //Cord
-    caster2->SetInput(GSHoleFilling2->GetOutput());
-    connector2->SetInput(caster2->GetOutput());
-    connector2->Update();
+    auto connector2 =castDataItkToVtk(GSHoleFilling2);
     volumeCord->DeepCopy(connector2->GetOutput());
 
 

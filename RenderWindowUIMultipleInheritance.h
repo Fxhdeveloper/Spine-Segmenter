@@ -127,6 +127,7 @@ typedef itk::BinaryMorphologicalClosingImageFilter < OutputImageType, OutputImag
 typedef itk::VotingBinaryIterativeHoleFillingImageFilter< OutputImageType > IterativeFillHolesFilterType;
 typedef itk::GrayscaleFillholeImageFilter< OutputImageType, OutputImageType > GSFillHolesFilterType;
 
+
 class RenderWindowUIMultipleInheritance : public QMainWindow , private Ui::SimpleView
 {
     Q_OBJECT
@@ -153,14 +154,6 @@ private:
     vtkSmartPointer<vtkImageData> volumeCord=vtkSmartPointer<vtkImageData>::New();
     vtkSmartPointer<vtkImageData> volumeIntervertebrae=vtkSmartPointer<vtkImageData>::New();
 
-    ConnectorType::Pointer connector1 = ConnectorType::New();
-    ConnectorType::Pointer connector2 = ConnectorType::New();
-    CastingFilterType::Pointer caster1 = CastingFilterType::New();
-    CastingFilterType::Pointer caster2 = CastingFilterType::New();
-
-
-
-
     CloseType::Pointer newClosing = CloseType::New();
     CloseType::Pointer newClosing2 = CloseType::New();
     IterativeFillHolesFilterType::Pointer HoleFilling = IterativeFillHolesFilterType::New();
@@ -186,7 +179,6 @@ private:
     vtkSmartPointer<vtkMarchingCubes> surface2 =
             vtkSmartPointer<vtkMarchingCubes>::New();
 
-
     vtkSmartPointer<vtkOBJExporter> myobjexporter = vtkSmartPointer<vtkOBJExporter>::New();
 
     int theLowerThreshold{};
@@ -200,8 +192,12 @@ private:
 
     std::string getDicomImagesFolder();
 
-    ConnectorType::Pointer castDataItkToVtk(CurvatureFlowImageFilterType::Pointer inputData);
+    template<typename T>
+    auto castDataItkToVtk(T inputData);
 
+    void updateLabel();
+
+    void callThresholdFilter();
 private slots:
     void on_UpperThreshold_valueChanged(int value);
     void on_LowerThreshold_valueChanged(int value);

@@ -167,25 +167,27 @@ void RenderWindowUIMultipleInheritance::on_Crop_clicked() {
     itkObject->crop();
     itkObject->smooth();
     auto connector1 = castItkToVtk(itkObject->getSmoothedData());
-    vtkSmartPointer<vtkImageData> volume1 = vtkSmartPointer<vtkImageData>::New();
+    auto volume1 = vtkSmartPointer<vtkImageData>::New();
     volume1->DeepCopy(connector1->GetOutput());
 
-
-    vtkSmartPointer<vtkImageFlip> flipXFilter =
-            vtkSmartPointer<vtkImageFlip>::New();
-    flipXFilter->SetFilteredAxis(1); // flip x axis
-    flipXFilter->SetInputData(volume1);
-    flipXFilter->Update();
-
+    auto flipXFilter = flipImage(volume1);
     imageViewer->SetInputConnection(flipXFilter->GetOutputPort());
     imageViewer->Render();
     imageViewer->GetRenderer()->ResetCamera();
     imageViewer->Render();
-
-
-
-
 }
+
+
+vtkSmartPointer<vtkImageFlip> RenderWindowUIMultipleInheritance::flipImage(vtkSmartPointer<vtkImageData> inputData, int flipAxis) // flip x axis
+{
+   auto flipXFilter = vtkSmartPointer<vtkImageFlip>::New();
+   flipXFilter->SetFilteredAxis(flipAxis);
+   flipXFilter->SetInputData(inputData);
+   flipXFilter->Update();
+
+   return flipXFilter;
+}
+
 
 void RenderWindowUIMultipleInheritance::Threshold(void) {
 
@@ -195,22 +197,13 @@ void RenderWindowUIMultipleInheritance::Threshold(void) {
     auto connector = castItkToVtk(intervertebrae);
     volumeIntervertebrae->DeepCopy(connector->GetOutput());
 
-
-    vtkSmartPointer<vtkImageFlip> flipXFilter =
-            vtkSmartPointer<vtkImageFlip>::New();
-    flipXFilter->SetFilteredAxis(1); // flip x axis
-    flipXFilter->SetInputData(volumeIntervertebrae);
-    flipXFilter->Update();
-
-
-
+    auto flipXFilter = flipImage(volumeIntervertebrae);
     imageViewer->SetInputConnection(flipXFilter->GetOutputPort());
     imageViewer->Render();
     imageViewer->GetRenderer()->ResetCamera();
     imageViewer->Render();
-
-
 }
+
 
 void RenderWindowUIMultipleInheritance::ThresholdCord(void) {
     //Intervertebrae Disks

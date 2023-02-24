@@ -180,7 +180,7 @@ private:
     template<typename T>
     ConnectorType::Pointer castItkToVtk(T inputData);
 
-    void updateImageViewer(vtkSmartPointer<vtkImageFlip> flipXFilter);
+    vtkSmartPointer<vtkImageFlip> flipImage(vtkSmartPointer<vtkImageData> inputData, int flipAxis=1);
 
 private slots:
     void on_UpperThreshold_valueChanged(int value);

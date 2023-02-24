@@ -3,21 +3,20 @@
 
 #include "ui_SimpleView.h"
 #include <QMainWindow>
-#include "itkBinaryBallStructuringElement.h"
+
 #include "itkBinaryImageToShapeLabelMapFilter.h"
 #include "itkBinaryMorphologicalClosingImageFilter.h"
 #include "itkCastImageFilter.h"
 #include "itkConnectedThresholdImageFilter.h"
 #include "itkConstNeighborhoodIterator.h"
 #include "itkFlipImageFilter.h"
-#include "itkGrayscaleFillholeImageFilter.h"
 #include "itkImage.h"
 #include "itkImageDuplicator.h"
 
 #include "itkImageFileWriter.h"
 #include "itkImageSeriesWriter.h"
 #include "itkImageSliceIteratorWithIndex.h"
-#include "itkImageToVTKImageFilter.h"
+
 #include "itkLabelMapToBinaryImageFilter.h"
 #include "itkLabelToRGBImageFilter.h"
 #include "itkMaskImageFilter.h"
@@ -33,12 +32,12 @@
 #include "itkStatisticsImageFilter.h"
 #include "itkSubtractImageFilter.h"
 #include "itksys/SystemTools.hxx"
-#include "itkVotingBinaryIterativeHoleFillingImageFilter.h"
+
 #include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <itkAddImageFilter.h>
-#include <itkBinaryThresholdImageFilter.h>
+
 
 #include <itkImage.h>
 #include <itkImageFileReader.h>
@@ -112,21 +111,10 @@ VTK_MODULE_INIT(vtkRenderingOpenGL2)
 VTK_MODULE_INIT(vtkInteractionStyle)
 VTK_MODULE_INIT(vtkRenderingFreeType)
 
+using ConnectorType = itk::ImageToVTKImageFilter<OutputImageType>;
+using CastingFilterType = itk::CastImageFilter< InputImageType, OutputImageType>;
+
 using namespace std;
-
-typedef double InputPixelType;
-typedef double OutputPixelType;
-const unsigned int InputDimension = 3;
-typedef itk::Image<OutputPixelType, InputDimension> OutputImageType;
-typedef itk::Image<InputPixelType, InputDimension> InputImageType;
-typedef itk::CastImageFilter< InputImageType, OutputImageType >  CastingFilterType;
-typedef itk::ImageToVTKImageFilter<OutputImageType>       ConnectorType;
-typedef itk::BinaryThresholdImageFilter<InputImageType, InputImageType> BinaryThresholdFilter;
-typedef itk::BinaryBallStructuringElement< OutputImageType::PixelType, 3 > StructuringElementType;
-typedef itk::BinaryMorphologicalClosingImageFilter < OutputImageType, OutputImageType, StructuringElementType > CloseType;
-typedef itk::VotingBinaryIterativeHoleFillingImageFilter< OutputImageType > IterativeFillHolesFilterType;
-typedef itk::GrayscaleFillholeImageFilter< OutputImageType, OutputImageType > GSFillHolesFilterType;
-
 
 class RenderWindowUIMultipleInheritance : public QMainWindow , private Ui::SimpleView
 {
@@ -149,18 +137,8 @@ private:
     vtkSmartPointer<vtkRenderWindowInteractor>     renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
     vtkSmartPointer<vtkRenderWindowInteractor>     renderWindowInteractor2 = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 
-    BinaryThresholdFilter::Pointer thresholdFilterIntervertebrae= BinaryThresholdFilter::New();
-    BinaryThresholdFilter::Pointer thresholdFilterCord= BinaryThresholdFilter::New();
     vtkSmartPointer<vtkImageData> volumeCord=vtkSmartPointer<vtkImageData>::New();
     vtkSmartPointer<vtkImageData> volumeIntervertebrae=vtkSmartPointer<vtkImageData>::New();
-
-    CloseType::Pointer newClosing = CloseType::New();
-    CloseType::Pointer newClosing2 = CloseType::New();
-    IterativeFillHolesFilterType::Pointer HoleFilling = IterativeFillHolesFilterType::New();
-    IterativeFillHolesFilterType::Pointer HoleFilling2 = IterativeFillHolesFilterType::New();
-    GSFillHolesFilterType::Pointer  GSHoleFilling = GSFillHolesFilterType::New();
-    GSFillHolesFilterType::Pointer GSHoleFilling2 = GSFillHolesFilterType::New();
-
 
     vtkSmartPointer<vtkRenderWindow> vtkrenderWindow =
             vtkSmartPointer<vtkRenderWindow>::New();
@@ -181,6 +159,10 @@ private:
 
     vtkSmartPointer<vtkOBJExporter> myobjexporter = vtkSmartPointer<vtkOBJExporter>::New();
 
+
+    BinaryThresholdFilter::Pointer intervertebrae= BinaryThresholdFilter::New();
+    BinaryThresholdFilter::Pointer spinalCord= BinaryThresholdFilter::New();
+
     int theLowerThreshold{};
     int theUpperThreshold{};
     int GlobalActualSlice{};
@@ -192,12 +174,14 @@ private:
 
     std::string getDicomImagesFolder();
 
-    template<typename T>
-    auto castDataItkToVtk(T inputData);
-
     void updateLabel();
 
     void callThresholdFilter();
+    template<typename T>
+    ConnectorType::Pointer castItkToVtk(T inputData);
+
+    void updateImageViewer(vtkSmartPointer<vtkImageFlip> flipXFilter);
+
 private slots:
     void on_UpperThreshold_valueChanged(int value);
     void on_LowerThreshold_valueChanged(int value);

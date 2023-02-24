@@ -32,7 +32,7 @@ void ITK::readDicom(std::string folder)
     }
 }
 
-ImageSeriesReader::Pointer ITK::getReader()
+auto ITK::getReader()
 {
     return reader;
 }
@@ -51,6 +51,33 @@ CurvatureFlowImageFilterType::Pointer ITK::getSmoothedData()
     return smoothing;
 }
 
+auto ITK::calculateCropStartPoint(std::shared_ptr<double[]> x, std::shared_ptr<double[]> y)
+{
+    InputImageType::IndexType cropStart;
+    cropStart[0] = x[0]-120;
+    cropStart[1] = 590 - y[1]- 35;//-88
+    cropStart[2] = MinSlice;  //x[2];
+
+    return cropStart;
+}
+auto ITK::calculateCropEndPoint(std::shared_ptr<double[]> x, std::shared_ptr<double[]> y)
+{
+    InputImageType::IndexType cropEnd;
+    cropEnd[0] = y[0]-88;//
+    cropEnd[1] = 590 - x[1]-15 ;//-44
+    cropEnd[2] = MaxSlice;  // x[2];
+
+    return cropEnd;
+}
+auto ITK::calculateCropSize(InputImageType::IndexType cropStart, InputImageType::IndexType cropEnd)
+{
+    InputImageType::SizeType cropSize;
+    cropSize[0] = cropEnd[0] - cropStart[0] ;
+    cropSize[1] = cropEnd[1] - cropStart[1] ;
+    cropSize[2] = cropEnd[2] - cropStart[2];
+
+    return cropSize;
+}
 
 void ITK::calculateRegionToCrop(std::shared_ptr<double[]> x, std::shared_ptr<double[]> y) {
 
@@ -65,34 +92,6 @@ void ITK::calculateRegionToCrop(std::shared_ptr<double[]> x, std::shared_ptr<dou
     ROIFilter->SetRegionOfInterest(regionToCrop);
 }
 
-InputImageType::IndexType ITK::calculateCropStartPoint(std::shared_ptr<double[]> x, std::shared_ptr<double[]> y)
-{
-    InputImageType::IndexType cropStart;
-    cropStart[0] = x[0]-120;
-    cropStart[1] = 590 - y[1]- 35;//-88
-    cropStart[2] = MinSlice;  //x[2];
-
-    return cropStart;
-}
-InputImageType::IndexType ITK::calculateCropEndPoint(std::shared_ptr<double[]> x, std::shared_ptr<double[]> y)
-{
-    InputImageType::IndexType cropEnd;
-    cropEnd[0] = y[0]-88;//
-    cropEnd[1] = 590 - x[1]-15 ;//-44
-    cropEnd[2] = MaxSlice;  // x[2];
-
-    return cropEnd;
-}
-
-InputImageType::SizeType ITK::calculateCropSize(InputImageType::IndexType cropStart, InputImageType::IndexType cropEnd)
-{
-    InputImageType::SizeType cropSize;
-    cropSize[0] = cropEnd[0] - cropStart[0] ;
-    cropSize[1] = cropEnd[1] - cropStart[1] ;
-    cropSize[2] = cropEnd[2] - cropStart[2];
-
-    return cropSize;
-}
 
 void ITK::crop(){
     ROIFilter->SetInput(reader->GetOutput());
@@ -105,4 +104,10 @@ void ITK::smooth()
     smoothing->SetNumberOfIterations(10);
     smoothing->SetTimeStep(0.05);
     smoothing->Update();
+}
+
+
+GSFillHolesFilterType::Pointer ITK::getVolume(BinaryThresholdFilter::Pointer inputData)
+{
+    return postProcess.getPostProcessedImage(inputData);
 }

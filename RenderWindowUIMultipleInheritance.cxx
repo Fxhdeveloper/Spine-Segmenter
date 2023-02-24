@@ -149,7 +149,7 @@ void RenderWindowUIMultipleInheritance::ShowCropTool() {
 }
 
 template<typename T>
-auto RenderWindowUIMultipleInheritance::castDataItkToVtk(T inputData)
+ConnectorType::Pointer RenderWindowUIMultipleInheritance::castItkToVtk(T inputData)
 {
     CastingFilterType::Pointer caster = CastingFilterType::New();
     ConnectorType::Pointer connector = ConnectorType::New();
@@ -166,9 +166,7 @@ void RenderWindowUIMultipleInheritance::on_Crop_clicked() {
 
     itkObject->crop();
     itkObject->smooth();
-
-    ConnectorType::Pointer connector1 = castDataItkToVtk(itkObject->getSmoothedData());
-
+    auto connector1 = castItkToVtk(itkObject->getSmoothedData());
     vtkSmartPointer<vtkImageData> volume1 = vtkSmartPointer<vtkImageData>::New();
     volume1->DeepCopy(connector1->GetOutput());
 
@@ -178,8 +176,6 @@ void RenderWindowUIMultipleInheritance::on_Crop_clicked() {
     flipXFilter->SetFilteredAxis(1); // flip x axis
     flipXFilter->SetInputData(volume1);
     flipXFilter->Update();
-
-
 
     imageViewer->SetInputConnection(flipXFilter->GetOutputPort());
     imageViewer->Render();
@@ -194,9 +190,9 @@ void RenderWindowUIMultipleInheritance::on_Crop_clicked() {
 void RenderWindowUIMultipleInheritance::Threshold(void) {
 
     //Intervertebrae Disks
-    itkObject->BinaryThreshold(thresholdFilterIntervertebrae, theLowerThreshold, theUpperThreshold);
+    itkObject->BinaryThreshold(intervertebrae, theLowerThreshold, theUpperThreshold);
 
-    auto connector = castDataItkToVtk(thresholdFilterIntervertebrae);
+    auto connector = castItkToVtk(intervertebrae);
     volumeIntervertebrae->DeepCopy(connector->GetOutput());
 
 
@@ -218,7 +214,7 @@ void RenderWindowUIMultipleInheritance::Threshold(void) {
 
 void RenderWindowUIMultipleInheritance::ThresholdCord(void) {
     //Intervertebrae Disks
-    itkObject->BinaryThreshold(thresholdFilterCord, 230, 441);
+    itkObject->BinaryThreshold(spinalCord, 230, 441);
 }
 
 void RenderWindowUIMultipleInheritance::Print(void) {
@@ -229,69 +225,18 @@ void RenderWindowUIMultipleInheritance::Print(void) {
     label_3->setText("Please wait! The 3D Model is loading...");
 }
 
+
 void RenderWindowUIMultipleInheritance::on_ShowModel_clicked() {
 
 
     Print();
     ThresholdCord();
-
-    /****** CLOSING AND HOLE FILLING TO IMPROVE THE SEGMENTATION RESULT ********/
-
-    StructuringElementType newStructElement;
-    StructuringElementType::SizeType newRadius;
-    newRadius.Fill(5);
-    newStructElement.SetRadius(newRadius);
-    newStructElement.CreateStructuringElement();
-    OutputImageType::SizeType FillRadius;
-    FillRadius.Fill(1);
-    //1
-    newClosing->SetInput(thresholdFilterIntervertebrae->GetOutput());
-    newClosing->SetKernel(newStructElement);
-    newClosing->SetForegroundValue(2);
-    newClosing->SetSafeBorder(1);
-    newClosing->Update();
-
-    HoleFilling->SetInput(newClosing->GetOutput());
-    HoleFilling->SetRadius(FillRadius);
-    HoleFilling->SetBackgroundValue(0);
-    HoleFilling->SetForegroundValue(2);
-    HoleFilling->SetMajorityThreshold(1);
-    HoleFilling->SetMaximumNumberOfIterations(10);
-    HoleFilling->Update();
-
-    GSHoleFilling->SetInput(HoleFilling->GetOutput());
-    GSHoleFilling->SetFullyConnected(1);
-    GSHoleFilling->Update();
-
-    //2///////////////////////////////////
-    newClosing2->SetInput(thresholdFilterCord->GetOutput());
-    newClosing2->SetKernel(newStructElement);
-    newClosing2->SetForegroundValue(2);
-    newClosing2->SetSafeBorder(1);
-    newClosing2->Update();
-
-    HoleFilling2->SetInput(newClosing2->GetOutput());
-    HoleFilling2->SetRadius(FillRadius);
-    HoleFilling2->SetBackgroundValue(0);
-    HoleFilling2->SetForegroundValue(2);
-    HoleFilling2->SetMajorityThreshold(1);
-    HoleFilling2->SetMaximumNumberOfIterations(10);
-    HoleFilling2->Update();
-
-    GSHoleFilling2->SetInput(HoleFilling2->GetOutput());
-    GSHoleFilling2->SetFullyConnected(1);
-    GSHoleFilling2->Update();
-    //*************** Closing and Hole Filling Finished ***********//
-
     //Intervertebrae Disks
-    auto connector1 =castDataItkToVtk(GSHoleFilling);
+    auto connector1 = castItkToVtk(itkObject->getVolume(intervertebrae));
     volumeIntervertebrae->DeepCopy(connector1->GetOutput());
-
     //Cord
-    auto connector2 =castDataItkToVtk(GSHoleFilling2);
+    auto connector2 =castItkToVtk(itkObject->getVolume(spinalCord));
     volumeCord->DeepCopy(connector2->GetOutput());
-
-
 
     //showing the 3d model
 

@@ -219,6 +219,16 @@ void RenderWindowUIMultipleInheritance::Print(void) {
 }
 
 
+vtkSmartPointer<vtkMarchingCubes> RenderWindowUIMultipleInheritance::extractSurface(vtkSmartPointer<vtkImageData> inputData)
+{
+    auto surface = vtkSmartPointer<vtkMarchingCubes>::New();
+    surface->SetInputData(inputData);
+    surface->ComputeNormalsOn();
+    surface->SetValue(0, 1.3);
+
+    return surface;
+}
+
 void RenderWindowUIMultipleInheritance::on_ShowModel_clicked() {
 
 
@@ -233,15 +243,8 @@ void RenderWindowUIMultipleInheritance::on_ShowModel_clicked() {
 
     //showing the 3d model
 
-    double Value = 1.3;
-
-    surface->SetInputData(volumeIntervertebrae);
-    surface->ComputeNormalsOn();
-    surface->SetValue(0, Value);
-
-    surface2->SetInputData(volumeCord);
-    surface2->ComputeNormalsOn();
-    surface2->SetValue(0, Value);
+    auto surface = extractSurface(volumeIntervertebrae);
+    auto surface2 = extractSurface(volumeCord);
 
     leftmapper->SetInputConnection(surface->GetOutputPort());
     leftmapper->ScalarVisibilityOff();

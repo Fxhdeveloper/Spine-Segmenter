@@ -152,10 +152,6 @@ private:
             vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
     vtkSmartPointer<vtkPolyDataMapper> leftmapper = vtkSmartPointer<vtkPolyDataMapper>::New();
     vtkSmartPointer<vtkActor> leftactor = vtkSmartPointer<vtkActor>::New();
-    vtkSmartPointer<vtkMarchingCubes> surface =
-            vtkSmartPointer<vtkMarchingCubes>::New();
-    vtkSmartPointer<vtkMarchingCubes> surface2 =
-            vtkSmartPointer<vtkMarchingCubes>::New();
 
     vtkSmartPointer<vtkOBJExporter> myobjexporter = vtkSmartPointer<vtkOBJExporter>::New();
 
@@ -181,6 +177,7 @@ private:
     ConnectorType::Pointer castItkToVtk(T inputData);
 
     vtkSmartPointer<vtkImageFlip> flipImage(vtkSmartPointer<vtkImageData> inputData, int flipAxis=1);
+    vtkSmartPointer<vtkMarchingCubes> extractSurface(vtkSmartPointer<vtkImageData> inputData);
 
 private slots:
     void on_UpperThreshold_valueChanged(int value);

@@ -1,5 +1,6 @@
 #include "viewer.h"
 #include "myvtkinteractorstyleimage.h"
+#include <itkCurvatureFlowImageFilter.h>
 #include <vtkBorderWidget.h>
 #include <vtkImageData.h>
 #include <vtkImageFlip.h>
@@ -16,6 +17,9 @@ VTK_MODULE_INIT(vtkRenderingFreeType)
 vtkStandardNewMacro(myVtkInteractorStyleImage)
     vtkSmartPointer<myVtkInteractorStyleImage> myInteractorStyle =
         vtkSmartPointer<myVtkInteractorStyleImage>::New();
+
+using CurvatureFlowImageFilterType =
+    itk::CurvatureFlowImageFilter<InputImageType, InputImageType>;
 
 void Viewer::readDicomData(std::string folder) {
   readervtk->SetDirectoryName(folder.c_str());
@@ -180,3 +184,39 @@ void Viewer::updateCurrentSlice(int position) {
   imageViewer->SetSlice(position);
   imageViewer->Render();
 }
+template <typename T> void Viewer::renderVolume(T processedImage) {
+
+  auto volume = getVtkVolumeFromItkFilter(processedImage);
+  auto flipXFilter = flipImage(volume);
+  updateImageViewer(flipXFilter);
+}
+
+template <typename T>
+vtkSmartPointer<vtkImageData> Viewer::getVtkVolumeFromItkFilter(T inputImage) {
+
+  auto connector = castItkToVtk(inputImage);
+  auto volume = vtkSmartPointer<vtkImageData>::New();
+  volume->DeepCopy(connector->GetOutput());
+  return volume;
+}
+
+template <typename T> ConnectorType::Pointer Viewer::castItkToVtk(T inputData) {
+  auto caster = CastingFilterType::New();
+  auto connector = ConnectorType::New();
+
+  caster->SetInput(inputData->GetOutput());
+  connector->SetInput(caster->GetOutput());
+  connector->Update();
+
+  return connector;
+}
+
+template ConnectorType::Pointer
+    Viewer::castItkToVtk<CurvatureFlowImageFilterType::Pointer>(
+        CurvatureFlowImageFilterType::Pointer);
+
+template void Viewer::renderVolume<CurvatureFlowImageFilterType::Pointer>(
+    CurvatureFlowImageFilterType::Pointer);
+
+template void Viewer::renderVolume<BinaryThresholdFilter::Pointer>(
+    BinaryThresholdFilter::Pointer);

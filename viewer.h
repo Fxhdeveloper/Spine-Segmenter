@@ -84,30 +84,4 @@ private:
       vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
 };
 
-template <typename T> void Viewer::renderVolume(T processedImage) {
-
-  auto volume = getVtkVolumeFromItkFilter(processedImage);
-  auto flipXFilter = flipImage(volume);
-  updateImageViewer(flipXFilter);
-}
-
-template <typename T>
-vtkSmartPointer<vtkImageData> Viewer::getVtkVolumeFromItkFilter(T inputImage) {
-
-  auto connector = castItkToVtk(inputImage);
-  auto volume = vtkSmartPointer<vtkImageData>::New();
-  volume->DeepCopy(connector->GetOutput());
-  return volume;
-}
-
-template <typename T> ConnectorType::Pointer Viewer::castItkToVtk(T inputData) {
-  auto caster = CastingFilterType::New();
-  auto connector = ConnectorType::New();
-
-  caster->SetInput(inputData->GetOutput());
-  connector->SetInput(caster->GetOutput());
-  connector->Update();
-
-  return connector;
-}
 #endif // VIEWER_H

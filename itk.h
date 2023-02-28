@@ -6,12 +6,45 @@
 #include "itkImageSeriesReader.h"
 #include "itkCurvatureFlowImageFilter.h"
 #include "itkRegionOfInterestImageFilter.h"
-#include "itkImageToVTKImageFilter.h"
 
-typedef double InputPixelType;
-typedef double OutputPixelType;
-using OutputImageType = itk::Image<OutputPixelType, InputDimension>;
-using InputImageType = itk::Image<InputPixelType, InputDimension>;
+
+////// double check headers
+///
+
+#include "itkBinaryImageToShapeLabelMapFilter.h"
+#include "itkBinaryMorphologicalClosingImageFilter.h"
+#include "itkConnectedThresholdImageFilter.h"
+#include "itkConstNeighborhoodIterator.h"
+#include "itkFlipImageFilter.h"
+#include "itkImage.h"
+#include "itkImageDuplicator.h"
+#include "itkImageFileWriter.h"
+#include "itkImageSeriesWriter.h"
+#include "itkImageSliceIteratorWithIndex.h"
+#include "itkLabelMapToBinaryImageFilter.h"
+#include "itkLabelToRGBImageFilter.h"
+#include "itkMaskImageFilter.h"
+#include "itkMaskNegatedImageFilter.h"
+#include "itkMergeLabelMapFilter.h"
+#include "itkMetaDataObject.h"
+#include "itkNumericSeriesFileNames.h"
+#include "itkNumericTraits.h"
+#include "itkPasteImageFilter.h"
+#include "itkRescaleIntensityImageFilter.h"
+#include "itkRGBPixel.h"
+#include "itkScalarToRGBColormapImageFilter.h"
+#include "itkStatisticsImageFilter.h"
+#include "itkSubtractImageFilter.h"
+#include "itksys/SystemTools.hxx"
+#include <itkAddImageFilter.h>
+#include <itkImage.h>
+#include <itkImageFileReader.h>
+#include <itkImageFileWriter.h>
+#include <itkJPEGImageIO.h>
+#include <itkMaskNegatedImageFilter.h>
+#include <itkNrrdImageIO.h>
+#include <itkOtsuMultipleThresholdsImageFilter.h>
+///
 
 
 using ImageSeriesReader = itk::ImageSeriesReader<InputImageType>;
@@ -27,7 +60,7 @@ class ITK
 public:
     ITK();
 
-    void readDicom(std::string folder);
+    void readDicomData(std::string folder);
     void smooth();
     void crop();
     auto getReader();

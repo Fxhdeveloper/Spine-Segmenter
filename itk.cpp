@@ -10,7 +10,7 @@ ITK::ITK()
 
 }
 
-void ITK::readDicom(std::string folder)
+void ITK::readDicomData(std::string folder)
 {
     NamesGeneratorType::Pointer namesGenerator = NamesGeneratorType::New();
     namesGenerator->SetInputDirectory(folder.c_str());

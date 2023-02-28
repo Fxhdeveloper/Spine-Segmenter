@@ -7,11 +7,7 @@
 #include <itkBinaryThresholdImageFilter.h>
 #include "itkGrayscaleFillholeImageFilter.h"
 
-typedef double InputPixelType;
-typedef double OutputPixelType;
-const unsigned int InputDimension = 3;
-using OutputImageType = itk::Image<OutputPixelType, InputDimension>;
-using InputImageType = itk::Image<InputPixelType, InputDimension>;
+#include <CommonHeaders.h>
 
 using StructuringElementType = itk::BinaryBallStructuringElement< OutputImageType::PixelType, 3 >;
 using CloseType = itk::BinaryMorphologicalClosingImageFilter < OutputImageType, OutputImageType, StructuringElementType >;

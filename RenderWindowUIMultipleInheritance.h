@@ -4,6 +4,14 @@
 #include "ui_SimpleView.h"
 #include <QMainWindow>
 
+
+#include <QDesktopServices>
+#include <QDir>
+#include <QFileDialog>
+#include <qfont.h>
+#include <QMessageBox>
+#include <QTemporaryDir>
+#include <QUrl>
 #include <string>
 #include <iostream>
 

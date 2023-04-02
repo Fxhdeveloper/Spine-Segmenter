@@ -1,6 +1,7 @@
 #include "viewer.h"
 #include "myvtkinteractorstyleimage.h"
 #include <itkCurvatureFlowImageFilter.h>
+#include <vtkAutoInit.h>
 #include <vtkBorderWidget.h>
 #include <vtkImageData.h>
 #include <vtkImageFlip.h>
@@ -10,10 +11,6 @@
 #include <vtkProperty2D.h>
 #include <vtkbordercallback.h>
 
-VTK_MODULE_INIT(vtkRenderingOpenGL2)
-VTK_MODULE_INIT(vtkInteractionStyle)
-VTK_MODULE_INIT(vtkRenderingFreeType)
-
 vtkStandardNewMacro(myVtkInteractorStyleImage)
     vtkSmartPointer<myVtkInteractorStyleImage> myInteractorStyle =
         vtkSmartPointer<myVtkInteractorStyleImage>::New();
@@ -21,14 +18,16 @@ vtkStandardNewMacro(myVtkInteractorStyleImage)
 using CurvatureFlowImageFilterType =
     itk::CurvatureFlowImageFilter<InputImageType, InputImageType>;
 
+Viewer::Viewer() { this->setupUi(this); }
+
 void Viewer::readDicomData(std::string folder) {
-  readervtk->SetDirectoryName(folder.c_str());
-  readervtk->Update();
+  reader->SetDirectoryName(folder.c_str());
+  reader->Update();
 }
 
 void Viewer::setViewer() {
 
-  imageViewer->SetInputConnection(readervtk->GetOutputPort());
+  imageViewer->SetInputConnection(reader->GetOutputPort());
 
   qvtkWidget->SetRenderWindow(renderWindow);
   renderWindowInteractor = qvtkWidget->GetInteractor();

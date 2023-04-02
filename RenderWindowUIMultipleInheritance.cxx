@@ -14,6 +14,8 @@ RenderWindowUIMultipleInheritance::RenderWindowUIMultipleInheritance() {
                    SLOT(slotExit()));
   QObject::connect(this->UpperThreshold, SIGNAL(valueChanged), this,
                    SLOT(on_UpperThreshold_valueChanged(int)));
+  QObject::connect(this->LowerThreshold_2, SIGNAL(valueChanged), this,
+                   SLOT(on_DCM_Slice_change_sliderMoved(int)));
   setLabels();
 };
 

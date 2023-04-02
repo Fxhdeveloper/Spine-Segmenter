@@ -9,6 +9,7 @@
 #include "itkImageToVTKImageFilter.h"
 #include <itkBinaryThresholdImageFilter.h>
 #include <vtkActor.h>
+
 #include <vtkAutoInit.h>
 #include <vtkDICOMImageReader.h>
 #include <vtkGenericOpenGLRenderWindow.h>
@@ -20,6 +21,9 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
+VTK_MODULE_INIT(vtkRenderingOpenGL2)
+VTK_MODULE_INIT(vtkInteractionStyle)
+VTK_MODULE_INIT(vtkRenderingFreeType)
 
 using BinaryThresholdFilter =
     itk::BinaryThresholdImageFilter<InputImageType, InputImageType>;
@@ -29,6 +33,8 @@ using CastingFilterType = itk::CastImageFilter<InputImageType, OutputImageType>;
 class Viewer : public QMainWindow, private Ui::SimpleView {
   Q_OBJECT
 public:
+  Viewer();
+
   void readDicomData(std::string folder);
   void setViewer();
   void showCropTool();
@@ -58,7 +64,7 @@ private:
   void initRenderer();
   void updateImageViewer(vtkSmartPointer<vtkImageFlip> flipXFilter);
 
-  vtkSmartPointer<vtkDICOMImageReader> readervtk =
+  vtkSmartPointer<vtkDICOMImageReader> reader =
       vtkSmartPointer<vtkDICOMImageReader>::New();
   vtkSmartPointer<vtkImageViewer2> imageViewer =
       vtkSmartPointer<vtkImageViewer2>::New();
